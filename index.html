@@ -3,106 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Barcode Scanner Prototype</title>
-<style>
-  body {
-    margin: 0;
-    font-family: sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    background-color: #111;
-    color: white;
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  h1 {
-    margin: 10px 0;
-  }
-
-  #camera-container {
-    position: relative;
-    width: 90%;
-    max-width: 400px;
-    height: 300px;
-    margin-top: 20px;
-    border-radius: 20px;
-    overflow: hidden;
-    border: 2px solid #888;
-    background: black;
-  }
-
-  video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  #scan-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: 3px dashed #0f0;
-    box-sizing: border-box;
-    pointer-events: none;
-    animation: pulse 1.5s infinite;
-  }
-
-  @keyframes pulse {
-    0% { opacity: 0.5; }
-    50% { opacity: 1; }
-    100% { opacity: 0.5; }
-  }
-
-  #scan-button {
-    margin-top: 20px;
-    padding: 15px 30px;
-    font-size: 18px;
-    border: none;
-    border-radius: 10px;
-    background-color: #0f0;
-    color: black;
-    font-weight: bold;
-  }
-
-  #loading {
-    margin-top: 20px;
-    display: none;
-  }
-
-  .spinner {
-    border: 5px solid #333;
-    border-top: 5px solid #0f0;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
-    margin: auto;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg);}
-    100% { transform: rotate(360deg);}
-  }
-
-  #barcode-info {
-    margin-top: 20px;
-    font-size: 18px;
-    text-align: center;
-    min-height: 40px;
-  }
-</style>
+<title>Barcode Scanner</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h1>Scan Barcode</h1>
 
 <div id="camera-container">
-  <video id="video" autoplay playsinline></video>
+  <video id="video" autoplay playsinline muted></video>
   <div id="scan-overlay"></div>
 </div>
 
@@ -114,38 +23,6 @@
 
 <div id="barcode-info"></div>
 
-<script>
-  const video = document.getElementById('video');
-  const scanButton = document.getElementById('scan-button');
-  const loading = document.getElementById('loading');
-  const barcodeInfo = document.getElementById('barcode-info');
-
-  // Access camera
-  async function startCamera() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      video.srcObject = stream;
-    } catch (err) {
-      console.error("Error accessing camera:", err);
-      alert("Camera access is required to scan barcodes.");
-    }
-  }
-
-  startCamera();
-
-  // Simulate scanning
-  scanButton.addEventListener('click', () => {
-    loading.style.display = 'block';
-    barcodeInfo.textContent = ''; // clear previous info
-
-    // Simulate processing time
-    setTimeout(() => {
-      loading.style.display = 'none';
-      // Placeholder barcode info
-      barcodeInfo.textContent = "Scanned barcode: |__|_||\nShelf: Health Potions\nItems: Potion, Elixir";
-    }, 2000);
-  });
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
