@@ -3,7 +3,7 @@ const barcodeInfo = document.getElementById('barcode-info');
 const scanWindow = document.getElementById('scan-window');
 
 let codes = {
-  "<|_|_||>": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
+  "<_|___|>": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
   "<_|_|_||>": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
 };
 
