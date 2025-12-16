@@ -2,10 +2,7 @@ const video = document.getElementById('video');
 const barcodeInfo = document.getElementById('barcode-info');
 const scanWindow = document.getElementById('scan-window');
 
-const scanSound = document.getElementById('scanSound');
-const successSound = document.getElementById('successSound');
-const errorSound = document.getElementById('errorSound');
-
+// Sample barcode data
 let codes = {
   "■□■■□": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
   "□■□■□": { shelf: "Weapons Rack", items: ["Sword", "Bow"] },
@@ -17,22 +14,32 @@ async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
     video.srcObject = stream;
-    video.play();
+    await video.play();
   } catch (err) {
-    console.error("Error accessing camera:", err);
+    console.error("Camera error:", err);
     alert("Camera access is required.");
   }
 }
 
 startCamera();
 
-// Automatic scanning function
+// Helper: play beep sound using Web Audio API
+function playBeep(frequency = 440, duration = 100) {
+  const context = new AudioContext();
+  const oscillator = context.createOscillator();
+  oscillator.type = 'square';
+  oscillator.frequency.value = frequency;
+  oscillator.connect(context.destination);
+  oscillator.start();
+  oscillator.stop(context.currentTime + duration / 1000);
+}
+
+// Scan function
 function scanBarcode() {
   if (!video.videoWidth || !video.videoHeight) return;
 
-  // Play scan attempt sound
-  scanSound.currentTime = 0;
-  scanSound.play();
+  // Play scan beep
+  playBeep(440, 50);
 
   const canvas = document.createElement('canvas');
   canvas.width = video.videoWidth;
@@ -40,15 +47,19 @@ function scanBarcode() {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  // Middle box coordinates
-  const boxWidth = scanWindow.offsetWidth;
-  const boxHeight = scanWindow.offsetHeight;
-  const boxLeft = (canvas.width - boxWidth) / 2;
-  const boxTop = (canvas.height - boxHeight) / 2;
+  const boxRect = scanWindow.getBoundingClientRect();
+  const videoRect = video.getBoundingClientRect();
 
-  const numLines = 3; // scan multiple horizontal lines inside the box
-  const sliceWidth = Math.floor(boxWidth / 5); // 5 squares
+  // Map scan window to video coordinates
+  const scaleX = canvas.width / videoRect.width;
+  const scaleY = canvas.height / videoRect.height;
+  const boxLeft = (boxRect.left - videoRect.left) * scaleX;
+  const boxTop = (boxRect.top - videoRect.top) * scaleY;
+  const boxWidth = boxRect.width * scaleX;
+  const boxHeight = boxRect.height * scaleY;
 
+  const numLines = 3;
+  const sliceWidth = Math.floor(boxWidth / 5);
   let combinedBarcode = '';
 
   for (let l = 0; l < numLines; l++) {
@@ -73,35 +84,28 @@ function scanBarcode() {
     combinedBarcode += lineBarcode;
   }
 
-  // Take middle line to reduce noise
   const barcodeRaw = combinedBarcode.slice(Math.floor(combinedBarcode.length / 3), Math.floor(2 * combinedBarcode.length / 3));
 
-  // Only detect inside <…>
+  // Detect inside <…>
   const startIndex = barcodeRaw.indexOf('<');
   const endIndex = barcodeRaw.indexOf('>', startIndex + 1);
 
   if (startIndex !== -1 && endIndex !== -1) {
     const barcodeData = barcodeRaw.slice(startIndex + 1, endIndex);
-    barcodeInfo.textContent = `Detected: ${barcodeData}`;
-
     if (codes[barcodeData]) {
-      scanWindow.classList.add('detected');
-      const info = codes[barcodeData];
-      barcodeInfo.textContent += `\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
-      successSound.currentTime = 0;
-      successSound.play();
+      barcodeInfo.textContent = `Detected: ${barcodeData}\nShelf: ${codes[barcodeData].shelf}\nItems: ${codes[barcodeData].items.join(', ')}`;
+      scanWindow.style.borderColor = "#0f0"; // green highlight
+      playBeep(880, 100); // success beep
     } else {
-      scanWindow.classList.remove('detected');
-      errorSound.currentTime = 0;
-      errorSound.play();
+      barcodeInfo.textContent = `Detected: ${barcodeData}\nUnknown barcode`;
+      scanWindow.style.borderColor = "#f00"; // red highlight
+      playBeep(220, 150); // error beep
     }
   } else {
-    scanWindow.classList.remove('detected');
     barcodeInfo.textContent = 'No valid barcode detected';
-    errorSound.currentTime = 0;
-    errorSound.play();
+    scanWindow.style.borderColor = "#0ff"; // default sky blue
   }
 }
 
-// Automatic scan every 300ms
-setInterval(scanBarcode, 300);
+// Automatic scanning
+setInterval(scanBarcode, 400);
