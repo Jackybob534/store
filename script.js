@@ -5,7 +5,7 @@ const scanWindow = document.getElementById('scan-window');
 // Known barcodes (with dots for clarity)
 let codes = {
   "<_.|._.|._>": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
-  "<_|.|_|._||>": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
+  "<_._.|.|._>": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
 };
 
 // Scan success sound
