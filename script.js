@@ -8,6 +8,9 @@ let codes = {
   "<_|_|_||>": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
 };
 
+// Scan success sound
+const scanSound = new Audio('scanSound.mp3'); // Replace with your file path
+
 // Start camera
 async function startCamera() {
   try {
@@ -26,28 +29,22 @@ function normalizeBarcode(raw) {
   return raw.replace(/(\|)+/g, '|').replace(/(_)+/g, '_');
 }
 
-// Check barcode against known codes
+// Check scanned barcode against codes
 function checkBarcode(barcodeRaw) {
-  const barcodeData = `<${normalizeBarcode(barcodeRaw)}>`;
+  const barcodeData = `<${normalizeBarcode(barcodeRaw)}>`; // wrap with <>
   let found = null;
 
-  // Exact match
   if (codes[barcodeData]) {
     found = codes[barcodeData];
-  } else {
-    // Optional fallback: includes match
-    for (let key in codes) {
-      if (barcodeData.includes(key)) {
-        found = codes[key];
-        break;
-      }
-    }
+    // Play scan sound on successful detection
+    scanSound.currentTime = 0;
+    scanSound.play().catch(err => console.warn("Sound play failed:", err));
   }
 
   return { barcodeData, found };
 }
 
-// Scanning function
+// Scanning function (scanner logic untouched)
 function scanBarcode() {
   if (!video.videoWidth || !video.videoHeight) return;
 
@@ -74,10 +71,13 @@ function scanBarcode() {
     barcodeRaw += blackPixels > (sliceWidth / 2) ? '|' : '_';
   }
 
-  // Use communication layer
+  // Communication with codes
   const { barcodeData, found } = checkBarcode(barcodeRaw);
+
+  // Display detected barcode
   barcodeInfo.textContent = `Detected: ${barcodeData}`;
 
+  // Keep your detected highlight exactly as before
   if (found) {
     scanWindow.classList.add('detected');
     barcodeInfo.textContent += `\nShelf: ${found.shelf}\nItems: ${found.items.join(', ')}`;
