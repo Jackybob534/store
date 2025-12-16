@@ -40,13 +40,21 @@ video {
   border: 3px dashed skyblue;
   box-sizing: border-box;
   pointer-events: none;
-  transition: 0.2s border-color;
+  color: white;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 16px;
+  transition: 0.2s border-color, 0.2s box-shadow;
 }
 
 #scan-window.detected {
   border-color: deepskyblue;
   box-shadow: 0 0 20px deepskyblue;
 }
+
 
 
 #barcode-info {
