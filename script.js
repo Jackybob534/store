@@ -1,13 +1,6 @@
 const video = document.getElementById('video');
 const barcodeInfo = document.getElementById('barcode-info');
 const scanButton = document.getElementById('scan-button');
-let codes = {};
-
-// Load barcode data
-fetch('./codes.json')
-  .then(res => res.json())
-  .then(data => codes = data)
-  .catch(err => console.error("Failed to load codes.json:", err));
 
 // Start camera
 async function startCamera() {
@@ -28,7 +21,7 @@ function normalizeBarcode(raw) {
   return raw.replace(/(\|)+/g, '|').replace(/(_)+/g, '_');
 }
 
-// Scan function
+// Scan function — prints anything it sees
 function scanBarcode() {
   const canvas = document.createElement('canvas');
   canvas.width = video.videoWidth;
@@ -52,34 +45,22 @@ function scanBarcode() {
     barcodeRaw += blackPixels > scanHeight / 2 ? '|' : '_';
   }
 
+  // Extract between start/end markers if present
   const startMarker = '|>';
   const stopMarker = '<|';
   const startIndex = barcodeRaw.indexOf(startMarker);
   const stopIndex = barcodeRaw.indexOf(stopMarker, startIndex + startMarker.length);
-  let barcodeData = null;
 
+  let barcodeData;
   if (startIndex !== -1 && stopIndex !== -1) {
     barcodeData = barcodeRaw.slice(startIndex + startMarker.length, stopIndex);
     barcodeData = normalizeBarcode(barcodeData);
+  } else {
+    barcodeData = normalizeBarcode(barcodeRaw); // no markers, just normalize everything
   }
 
-  // Highlight scan window if a valid code is detected
-  const scanWindow = document.getElementById('scan-window');
-  if (barcodeData) {
-    let text = `Scanned barcode: ${barcodeData}\n`;
-    if (codes[barcodeData]) {
-      scanWindow.classList.add('detected');
-      const info = codes[barcodeData];
-      text += `Shelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
-    } else {
-      scanWindow.classList.remove('detected');
-      text += `Shelf: Unknown`;
-    }
-    barcodeInfo.textContent = text;
-  } else {
-    scanWindow.classList.remove('detected');
-    barcodeInfo.textContent = '';
-  }
+  // Show whatever it reads
+  barcodeInfo.textContent = `Scanned barcode: ${barcodeData}`;
 }
 
 // Connect button
