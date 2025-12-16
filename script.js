@@ -11,6 +11,8 @@ let codes = {
 // Scan success sound
 const scanSound = new Audio('scanSound.mp3'); // Replace with your path
 
+let lastDetected = null; // Tracks last detected known barcode
+
 // Start camera
 async function startCamera() {
   try {
@@ -29,14 +31,14 @@ async function startCamera() {
 }
 startCamera();
 
-// Convert raw barcode to readable format with dots
+// Convert raw barcode to readable format with dots (display only)
 function prettifyBarcode(raw) {
-  return raw.split('').join('.'); // add dots between each character
+  return raw.split('').join('.');
 }
 
-// Normalize barcode for matching: add dots between repeated chars
+// Normalize barcode for matching: add dots between characters
 function normalizeBarcode(raw) {
-  return raw.split('').join('.'); // ensures matching with dotted keys
+  return raw.split('').join('.');
 }
 
 // Check barcode against known codes
@@ -46,9 +48,6 @@ function checkBarcode(barcodeRaw) {
 
   if (codes[barcodeData]) {
     found = codes[barcodeData];
-    // Play scan sound
-    scanSound.currentTime = 0;
-    scanSound.play().catch(err => console.warn("Sound play failed:", err));
   }
 
   return { barcodeData, found };
@@ -84,18 +83,25 @@ function scanBarcode() {
     barcodeRaw += blackPixels > (sliceWidth * lineHeight / 2) ? '|' : '_';
   }
 
-  // Communication
+  // Communication with codes
   const { barcodeData, found } = checkBarcode(barcodeRaw);
 
   // Display barcode with dots
   barcodeInfo.textContent = `Detected: ${barcodeData}`;
 
-  // Highlight detected if known
   if (found) {
     scanWindow.classList.add('detected');
     barcodeInfo.textContent += `\nShelf: ${found.shelf}\nItems: ${found.items.join(', ')}`;
+
+    // Play sound only once per detection
+    if (lastDetected !== barcodeData) {
+      scanSound.currentTime = 0;
+      scanSound.play().catch(err => console.warn("Sound play failed:", err));
+      lastDetected = barcodeData;
+    }
   } else {
     scanWindow.classList.remove('detected');
+    lastDetected = null; // reset so next detection triggers sound
   }
 }
 
