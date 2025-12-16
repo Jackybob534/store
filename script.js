@@ -24,7 +24,7 @@ async function startCamera() {
 
 startCamera();
 
-// Scan function for horizontal barcode
+// Scan function
 function scanBarcode() {
   const canvas = document.createElement('canvas');
   canvas.width = video.videoWidth;
@@ -32,9 +32,9 @@ function scanBarcode() {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  const y = Math.floor(canvas.height / 2); // horizontal line in middle
-  const lineHeight = 5; // thickness of the line
-  const sliceWidth = 1; // read every pixel horizontally
+  const y = Math.floor(canvas.height / 2);
+  const lineHeight = 5;
+  const sliceWidth = 1;
 
   let barcodeRaw = '';
 
@@ -53,13 +53,25 @@ function scanBarcode() {
   // Add dot between every character
   const rawWithDots = barcodeRaw.split('').join('.');
 
-  // Display whatever was read
-  barcodeInfo.textContent = `Detected: ${rawWithDots}`;
+  // Optional start/end extraction
+  const startMarker = '<';
+  const endMarker = '>';
+  const startIndex = rawWithDots.indexOf(startMarker);
+  const endIndex = rawWithDots.indexOf(endMarker, startIndex + 1);
 
-  // Highlight if known code
-  if (codes[rawWithDots]) {
+  let barcodeData = rawWithDots; // default: everything
+
+  if (startIndex !== -1 && endIndex !== -1) {
+    barcodeData = rawWithDots.slice(startIndex + 1, endIndex);
+  }
+
+  // Display what was read
+  barcodeInfo.textContent = `Detected: ${barcodeData}`;
+
+  // Highlight if known
+  if (codes[barcodeData]) {
     scanWindow.classList.add('detected');
-    const info = codes[rawWithDots];
+    const info = codes[barcodeData];
     barcodeInfo.textContent += `\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
   } else {
     scanWindow.classList.remove('detected');
