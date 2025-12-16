@@ -1,6 +1,5 @@
 const video = document.getElementById('video');
 const barcodeInfo = document.getElementById('barcode-info');
-const scanButton = document.getElementById('scan-button');
 const scanWindow = document.getElementById('scan-window');
 
 let codes = {
@@ -22,7 +21,7 @@ async function startCamera() {
 
 startCamera();
 
-// Scan function for 5-symbol square barcode
+// Automatic scanning function
 function scanBarcode() {
   if (!video.videoWidth || !video.videoHeight) return;
 
@@ -33,9 +32,9 @@ function scanBarcode() {
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   const lineHeight = 10; // vertical pixels per square
-  const numLines = 3;    // scan multiple lines
+  const numLines = 3;    // scan multiple horizontal lines
   const yCenter = Math.floor(canvas.height / 2);
-  const sliceWidth = Math.floor(canvas.width / 20); // divide into 5 symbols
+  const sliceWidth = Math.floor(canvas.width / 5); // exactly 5 symbols
 
   let combinedBarcode = '';
 
@@ -43,7 +42,7 @@ function scanBarcode() {
     let y = yCenter - Math.floor(numLines / 2) * lineHeight + l * lineHeight;
     let lineBarcode = '';
 
-    for (let s = 0; s < 5; s++) { // exactly 5 symbols
+    for (let s = 0; s < 5; s++) { // 5 symbols
       const xStart = s * sliceWidth;
       let blackPixels = 0;
 
@@ -61,7 +60,7 @@ function scanBarcode() {
     combinedBarcode += lineBarcode;
   }
 
-  // Take middle line to reduce noise
+  // Take the middle line to reduce noise
   const barcodeRaw = combinedBarcode.slice(Math.floor(combinedBarcode.length / 3), Math.floor(2 * combinedBarcode.length / 3));
 
   // Optional start/end markers
@@ -70,7 +69,7 @@ function scanBarcode() {
   let barcodeData = barcodeRaw;
 
   if (startIndex !== -1 && endIndex !== -1) {
-    barcodeData = barcodeRaw.slice(startIndex, endIndex + 1); // include < and >
+    barcodeData = barcodeRaw.slice(startIndex, endIndex + 1);
   }
 
   // Display whatever was read
@@ -86,8 +85,5 @@ function scanBarcode() {
   }
 }
 
-// Manual scan
-scanButton.addEventListener('click', scanBarcode);
-
-// Automatic scan every 500ms
-setInterval(scanBarcode, 500);
+// Automatic scanning every 300ms
+setInterval(scanBarcode, 300);
