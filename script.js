@@ -4,10 +4,8 @@ const scanButton = document.getElementById('scan-button');
 const scanWindow = document.getElementById('scan-window');
 
 let codes = {
-  "_._.|._.||.|": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
-  "_._.|._.|._.|": { shelf: "Weapons Rack", items: ["Sword", "Bow"] },
-  "_._.|.|._.||.": { shelf: "Magic Items", items: ["Wand", "Spellbook"] },
-  "_|_|_._||.|": { shelf: "Armor Rack", items: ["Shield", "Helmet"] }
+  "<|_|_||>": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
+  "<_|_|_||>": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
 };
 
 // Start camera
@@ -24,7 +22,7 @@ async function startCamera() {
 
 startCamera();
 
-// Scan function for horizontal barcode (multi-line)
+// Scan function for 5-symbol square barcode
 function scanBarcode() {
   if (!video.videoWidth || !video.videoHeight) return;
 
@@ -34,10 +32,10 @@ function scanBarcode() {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  const lineHeight = 10; // vertical pixels per line
-  const numLines = 3;    // number of horizontal lines to scan
+  const lineHeight = 10; // vertical pixels per square
+  const numLines = 3;    // scan multiple lines
   const yCenter = Math.floor(canvas.height / 2);
-  const sliceWidth = 1;   // every pixel
+  const sliceWidth = Math.floor(canvas.width / 20); // divide into 5 symbols
 
   let combinedBarcode = '';
 
@@ -45,39 +43,37 @@ function scanBarcode() {
     let y = yCenter - Math.floor(numLines / 2) * lineHeight + l * lineHeight;
     let lineBarcode = '';
 
-    for (let x = 0; x < canvas.width; x += sliceWidth) {
+    for (let s = 0; s < 5; s++) { // exactly 5 symbols
+      const xStart = s * sliceWidth;
       let blackPixels = 0;
 
-      for (let dy = 0; dy < lineHeight; dy++) {
-        const pixel = ctx.getImageData(x, y + dy, 1, 1).data;
-        const brightness = (pixel[0] + pixel[1] + pixel[2]) / 3;
-        if (brightness < 128) blackPixels++;
+      for (let dx = 0; dx < sliceWidth; dx++) {
+        for (let dy = 0; dy < lineHeight; dy++) {
+          const pixel = ctx.getImageData(xStart + dx, y + dy, 1, 1).data;
+          const brightness = (pixel[0] + pixel[1] + pixel[2]) / 3;
+          if (brightness < 128) blackPixels++;
+        }
       }
 
-      lineBarcode += blackPixels > lineHeight / 2 ? '|' : '_';
+      lineBarcode += blackPixels > (sliceWidth * lineHeight / 2) ? '|' : '_';
     }
 
     combinedBarcode += lineBarcode;
   }
 
-  // Remove repeated sequences from multiple lines by taking middle line only
+  // Take middle line to reduce noise
   const barcodeRaw = combinedBarcode.slice(Math.floor(combinedBarcode.length / 3), Math.floor(2 * combinedBarcode.length / 3));
 
-  // Add dot between every character
-  const rawWithDots = barcodeRaw.split('').join('.');
-
   // Optional start/end markers
-  const startMarker = '<';
-  const endMarker = '>';
-  const startIndex = rawWithDots.indexOf(startMarker);
-  const endIndex = rawWithDots.indexOf(endMarker, startIndex + 1);
+  const startIndex = barcodeRaw.indexOf('<');
+  const endIndex = barcodeRaw.indexOf('>', startIndex + 1);
+  let barcodeData = barcodeRaw;
 
-  let barcodeData = rawWithDots; // default: everything
   if (startIndex !== -1 && endIndex !== -1) {
-    barcodeData = rawWithDots.slice(startIndex + 1, endIndex);
+    barcodeData = barcodeRaw.slice(startIndex, endIndex + 1); // include < and >
   }
 
-  // Display what was read
+  // Display whatever was read
   barcodeInfo.textContent = `Detected: ${barcodeData}`;
 
   // Highlight if known
