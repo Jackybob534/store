@@ -1,5 +1,6 @@
 const video = document.getElementById('video');
 const barcodeInfo = document.getElementById('barcode-info');
+const scanButton = document.getElementById('scan-button');
 let codes = {};
 
 // Load barcode data
@@ -39,7 +40,7 @@ function scanBarcode() {
   const scanHeight = canvas.height * 0.2;
 
   let barcodeRaw = '';
-  const sliceWidth = 5; // adjust depending on your barcode size
+  const sliceWidth = 5;
 
   for (let x = 0; x < canvas.width; x += sliceWidth) {
     let blackPixels = 0;
@@ -51,7 +52,6 @@ function scanBarcode() {
     barcodeRaw += blackPixels > scanHeight / 2 ? '|' : '_';
   }
 
-  // Extract barcode between start/end markers
   const startMarker = '|>';
   const stopMarker = '<|';
   const startIndex = barcodeRaw.indexOf(startMarker);
@@ -63,17 +63,15 @@ function scanBarcode() {
     barcodeData = normalizeBarcode(barcodeData);
   }
 
-  // Update scan window highlight and info
+  // Highlight scan window if a valid code is detected
   const scanWindow = document.getElementById('scan-window');
   if (barcodeData) {
     let text = `Scanned barcode: ${barcodeData}\n`;
     if (codes[barcodeData]) {
-      // Known barcode
       scanWindow.classList.add('detected');
       const info = codes[barcodeData];
       text += `Shelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
     } else {
-      // Unknown barcode
       scanWindow.classList.remove('detected');
       text += `Shelf: Unknown`;
     }
@@ -84,5 +82,5 @@ function scanBarcode() {
   }
 }
 
-// Scan continuously every 500ms
-setInterval(scanBarcode, 500);
+// Connect button
+scanButton.addEventListener('click', scanBarcode);
