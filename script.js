@@ -3,6 +3,11 @@ const barcodeInfo = document.getElementById('barcode-info');
 const scanButton = document.getElementById('scan-button');
 const scanWindow = document.getElementById('scan-window');
 
+let codes = {
+  "_._.|._.||.|": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
+  "_._.|._.|._.|": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
+};
+
 // Start camera
 async function startCamera() {
   try {
@@ -22,7 +27,7 @@ function normalizeBarcode(raw) {
   return raw.replace(/(\|)+/g, '|').replace(/(_)+/g, '_');
 }
 
-// Scan function — prints everything it sees
+// Scan function
 function scanBarcode() {
   const canvas = document.createElement('canvas');
   canvas.width = video.videoWidth;
@@ -46,12 +51,34 @@ function scanBarcode() {
     barcodeRaw += blackPixels > scanHeight / 2 ? '|' : '_';
   }
 
-  const barcodeData = normalizeBarcode(barcodeRaw);
+  // Add '.' between characters without spaces
+  let normalized = normalizeBarcode(barcodeRaw).split('').join('.');
 
-  // Print everything detected
-  barcodeInfo.textContent = `Detected text: ${barcodeData}`;
-  scanWindow.textContent = `Detected: ${barcodeData}`;
-  scanWindow.classList.add('detected');
+  // Extract between start/end markers
+  const startMarker = '<';
+  const stopMarker = '>';
+  const startIndex = normalized.indexOf(startMarker);
+  const stopIndex = normalized.indexOf(stopMarker, startIndex + 1);
+
+  let barcodeData = null;
+  if (startIndex !== -1 && stopIndex !== -1) {
+    barcodeData = normalized.slice(startIndex + 1, stopIndex);
+  } else {
+    barcodeData = normalized;
+  }
+
+  // Display results
+  barcodeInfo.textContent = `Scanned barcode: ${barcodeData}`;
+
+  // Highlight scan window if code is known
+  if (barcodeData && codes[barcodeData]) {
+    scanWindow.classList.add('detected');
+    const info = codes[barcodeData];
+    barcodeInfo.textContent += `\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
+  } else {
+    scanWindow.classList.remove('detected');
+    barcodeInfo.textContent += `\nShelf: Unknown`;
+  }
 }
 
 // Connect button
