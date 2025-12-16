@@ -24,7 +24,7 @@ async function startCamera() {
 
 startCamera();
 
-// Scan function (only detects if start/end markers exist)
+// Scan function
 function scanBarcode() {
   const canvas = document.createElement('canvas');
   canvas.width = video.videoWidth;
@@ -51,30 +51,38 @@ function scanBarcode() {
   // Add dot between every character
   const rawWithDots = barcodeRaw.split('').join('.');
 
-  // Only scan if start and end markers exist
   const startMarker = '<';
   const stopMarker = '>';
   const startIndex = rawWithDots.indexOf(startMarker);
   const stopIndex = rawWithDots.indexOf(stopMarker, startIndex + 1);
 
+  let barcodeData = null;
+  let message = '';
+
   if (startIndex !== -1 && stopIndex !== -1) {
-    const barcodeData = rawWithDots.slice(startIndex + 1, stopIndex);
-
-    // Display results
-    barcodeInfo.textContent = `Scanned barcode: ${barcodeData}`;
-
-    if (codes[barcodeData]) {
-      scanWindow.classList.add('detected');
-      const info = codes[barcodeData];
-      barcodeInfo.textContent += `\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
-    } else {
-      scanWindow.classList.remove('detected');
-      barcodeInfo.textContent += `\nShelf: Unknown`;
-    }
+    // Both markers found
+    barcodeData = rawWithDots.slice(startIndex + 1, stopIndex);
+    message = `Full barcode detected: ${barcodeData}`;
+  } else if (startIndex !== -1) {
+    // Only start marker
+    message = 'Start marker < detected, waiting for end marker >';
+  } else if (stopIndex !== -1) {
+    // Only end marker
+    message = 'End marker > detected, waiting for start marker <';
   } else {
-    // No valid barcode
+    message = 'No markers detected';
+  }
+
+  // Display results
+  barcodeInfo.textContent = message;
+
+  // Highlight scan window if full barcode matches JSON
+  if (barcodeData && codes[barcodeData]) {
+    scanWindow.classList.add('detected');
+    const info = codes[barcodeData];
+    barcodeInfo.textContent += `\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
+  } else {
     scanWindow.classList.remove('detected');
-    barcodeInfo.textContent = `No valid barcode detected`;
   }
 }
 
