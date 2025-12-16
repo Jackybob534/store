@@ -18,7 +18,6 @@ async function startCamera() {
     alert("Camera access is required.");
   }
 }
-
 startCamera();
 
 // Automatic scanning function
