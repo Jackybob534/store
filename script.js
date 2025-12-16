@@ -3,8 +3,8 @@ const barcodeInfo = document.getElementById('barcode-info');
 const scanWindow = document.getElementById('scan-window');
 
 let codes = {
-  "_|__|": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
-  "_|_|_||": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
+  "<_|__|>": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
+  "<_|_|_||>": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
 };
 
 // Start camera
