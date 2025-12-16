@@ -39,7 +39,7 @@ function scanBarcode() {
   const scanHeight = canvas.height * 0.2;
 
   let barcodeRaw = '';
-  const sliceWidth = 5; // adjust for your barcode size
+  const sliceWidth = 5; // adjust depending on your barcode size
 
   for (let x = 0; x < canvas.width; x += sliceWidth) {
     let blackPixels = 0;
@@ -51,6 +51,7 @@ function scanBarcode() {
     barcodeRaw += blackPixels > scanHeight / 2 ? '|' : '_';
   }
 
+  // Extract barcode between start/end markers
   const startMarker = '|>';
   const stopMarker = '<|';
   const startIndex = barcodeRaw.indexOf(startMarker);
@@ -62,18 +63,26 @@ function scanBarcode() {
     barcodeData = normalizeBarcode(barcodeData);
   }
 
-  // Highlight scan window if a valid code is detected
+  // Update scan window highlight and info
   const scanWindow = document.getElementById('scan-window');
-  if (barcodeData && codes[barcodeData]) {
-    scanWindow.classList.add('detected');
-    const info = codes[barcodeData];
-    barcodeInfo.textContent = `Scanned barcode: ${barcodeData}\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
+  if (barcodeData) {
+    let text = `Scanned barcode: ${barcodeData}\n`;
+    if (codes[barcodeData]) {
+      // Known barcode
+      scanWindow.classList.add('detected');
+      const info = codes[barcodeData];
+      text += `Shelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
+    } else {
+      // Unknown barcode
+      scanWindow.classList.remove('detected');
+      text += `Shelf: Unknown`;
+    }
+    barcodeInfo.textContent = text;
   } else {
     scanWindow.classList.remove('detected');
-    barcodeInfo.textContent = barcodeData ? `Scanned barcode: ${barcodeData}\nShelf: Unknown` : '';
+    barcodeInfo.textContent = '';
   }
 }
 
-
-// Scan continuously
+// Scan continuously every 500ms
 setInterval(scanBarcode, 500);
