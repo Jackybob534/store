@@ -33,7 +33,7 @@ function scanBarcode() {
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   const y = Math.floor(canvas.height / 2); // horizontal line in middle
-  const lineHeight = 5; // thickness of the line to average
+  const lineHeight = 5; // thickness of the line
   const sliceWidth = 1; // read every pixel horizontally
 
   let barcodeRaw = '';
@@ -53,29 +53,16 @@ function scanBarcode() {
   // Add dot between every character
   const rawWithDots = barcodeRaw.split('').join('.');
 
-  // Only detect if both start and end markers exist
-  const startMarker = '<';
-  const endMarker = '>';
-  const startIndex = rawWithDots.indexOf(startMarker);
-  const endIndex = rawWithDots.indexOf(endMarker, startIndex + 1);
+  // Display whatever was read
+  barcodeInfo.textContent = `Detected: ${rawWithDots}`;
 
-  if (startIndex !== -1 && endIndex !== -1) {
-    const barcodeData = rawWithDots.slice(startIndex + 1, endIndex);
-
-    // Display result
-    barcodeInfo.textContent = `Scanned barcode: ${barcodeData}`;
-
-    if (codes[barcodeData]) {
-      scanWindow.classList.add('detected');
-      const info = codes[barcodeData];
-      barcodeInfo.textContent += `\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
-    } else {
-      scanWindow.classList.remove('detected');
-      barcodeInfo.textContent += `\nShelf: Unknown`;
-    }
+  // Highlight if known code
+  if (codes[rawWithDots]) {
+    scanWindow.classList.add('detected');
+    const info = codes[rawWithDots];
+    barcodeInfo.textContent += `\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
   } else {
     scanWindow.classList.remove('detected');
-    barcodeInfo.textContent = 'No valid barcode detected';
   }
 }
 
