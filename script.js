@@ -5,7 +5,9 @@ const scanWindow = document.getElementById('scan-window');
 
 let codes = {
   "_._.|._.||.|": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
-  "_._.|._.|._.|": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
+  "_._.|._.|._.|": { shelf: "Weapons Rack", items: ["Sword", "Bow"] },
+  "_._.|.|._.||.": { shelf: "Magic Items", items: ["Wand", "Spellbook"] },
+  "_|_|_._||.|": { shelf: "Armor Rack", items: ["Shield", "Helmet"] }
 };
 
 // Start camera
@@ -22,12 +24,7 @@ async function startCamera() {
 
 startCamera();
 
-// Normalize repeated bars/spaces
-function normalizeBarcode(raw) {
-  return raw.replace(/(\|)+/g, '|').replace(/(_)+/g, '_');
-}
-
-// Scan function
+// Scan function (only detects if start/end markers exist)
 function scanBarcode() {
   const canvas = document.createElement('canvas');
   canvas.width = video.videoWidth;
@@ -51,35 +48,38 @@ function scanBarcode() {
     barcodeRaw += blackPixels > scanHeight / 2 ? '|' : '_';
   }
 
-  // Add '.' between characters without spaces
-  let normalized = normalizeBarcode(barcodeRaw).split('').join('.');
+  // Add dot between every character
+  const rawWithDots = barcodeRaw.split('').join('.');
 
-  // Extract between start/end markers
+  // Only scan if start and end markers exist
   const startMarker = '<';
   const stopMarker = '>';
-  const startIndex = normalized.indexOf(startMarker);
-  const stopIndex = normalized.indexOf(stopMarker, startIndex + 1);
+  const startIndex = rawWithDots.indexOf(startMarker);
+  const stopIndex = rawWithDots.indexOf(stopMarker, startIndex + 1);
 
-  let barcodeData = null;
   if (startIndex !== -1 && stopIndex !== -1) {
-    barcodeData = normalized.slice(startIndex + 1, stopIndex);
-  } else {
-    barcodeData = normalized;
-  }
+    const barcodeData = rawWithDots.slice(startIndex + 1, stopIndex);
 
-  // Display results
-  barcodeInfo.textContent = `Scanned barcode: ${barcodeData}`;
+    // Display results
+    barcodeInfo.textContent = `Scanned barcode: ${barcodeData}`;
 
-  // Highlight scan window if code is known
-  if (barcodeData && codes[barcodeData]) {
-    scanWindow.classList.add('detected');
-    const info = codes[barcodeData];
-    barcodeInfo.textContent += `\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
+    if (codes[barcodeData]) {
+      scanWindow.classList.add('detected');
+      const info = codes[barcodeData];
+      barcodeInfo.textContent += `\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
+    } else {
+      scanWindow.classList.remove('detected');
+      barcodeInfo.textContent += `\nShelf: Unknown`;
+    }
   } else {
+    // No valid barcode
     scanWindow.classList.remove('detected');
-    barcodeInfo.textContent += `\nShelf: Unknown`;
+    barcodeInfo.textContent = `No valid barcode detected`;
   }
 }
 
-// Connect button
+// Manual scan
 scanButton.addEventListener('click', scanBarcode);
+
+// Automatic scan every 500ms
+setInterval(scanBarcode, 500);
