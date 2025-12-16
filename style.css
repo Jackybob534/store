@@ -42,10 +42,12 @@ video {
   pointer-events: none;
   transition: 0.2s border-color;
 }
+
 #scan-window.detected {
   border-color: deepskyblue;
   box-shadow: 0 0 20px deepskyblue;
 }
+
 
 #barcode-info {
   margin-top: 20px;
