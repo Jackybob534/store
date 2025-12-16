@@ -2,6 +2,7 @@ const video = document.getElementById('video');
 const barcodeInfo = document.getElementById('barcode-info');
 const scanWindow = document.getElementById('scan-window');
 
+// Known codes
 let codes = {
   "<_|__|>": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
   "<_|_|_||>": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
@@ -20,7 +21,12 @@ async function startCamera() {
 }
 startCamera();
 
-// Scanning function (optimized: middle line only)
+// Normalize repeated bars/underscores
+function normalizeBarcode(raw) {
+  return raw.replace(/(\|)+/g, '|').replace(/(_)+/g, '_');
+}
+
+// Scanning function
 function scanBarcode() {
   if (!video.videoWidth || !video.videoHeight) return;
 
@@ -47,12 +53,11 @@ function scanBarcode() {
     barcodeRaw += blackPixels > (sliceWidth / 2) ? '|' : '_';
   }
 
-  // Add optional start/end markers
-  const barcodeData = `<${barcodeRaw}>`;
-
+  // Add start/end markers and normalize
+  const barcodeData = `<${normalizeBarcode(barcodeRaw)}>`;
   barcodeInfo.textContent = `Detected: ${barcodeData}`;
 
-  // Highlight if known
+  // Success detection
   if (codes[barcodeData]) {
     scanWindow.classList.add('detected');
     const info = codes[barcodeData];
@@ -62,5 +67,5 @@ function scanBarcode() {
   }
 }
 
-// Automatic scanning
+// Automatic scanning every 300ms
 setInterval(scanBarcode, 300);
