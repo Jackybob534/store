@@ -1,14 +1,10 @@
 {
-  "|__|_||": {
+  "__|_||": {
     "shelf": "Health Potions",
     "items": ["Potion", "Elixir"]
   },
-  "|_|_|_|": {
+  "_|_|_|": {
     "shelf": "Weapons Rack",
     "items": ["Sword", "Bow"]
-  },
-  "|_||__|": {
-    "shelf": "Armor Section",
-    "items": ["Helmet", "Shield"]
   }
 }
