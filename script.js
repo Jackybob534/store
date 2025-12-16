@@ -4,7 +4,7 @@ const scanWindow = document.getElementById('scan-window');
 
 // Known barcodes
 let codes = {
-  "<_|__|>": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
+  "<_|_|_>": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
   "<_|_|_||>": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
 };
 
