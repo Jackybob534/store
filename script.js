@@ -4,14 +4,14 @@ const scanWindow = document.getElementById('scan-window');
 
 // Known barcodes
 let codes = {
-  "<_|_|_>": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
+  "<_|__|>": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
   "<_|_|_||>": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
 };
 
 // Scan success sound
-const scanSound = new Audio('scanSound.mp3'); // Replace with your file path
+const scanSound = new Audio('scanSound.mp3'); // replace with your path
 
-// Start camera
+// Start camera (unchanged)
 async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -24,27 +24,12 @@ async function startCamera() {
 }
 startCamera();
 
-// Normalize repeated bars/underscores
-function normalizeBarcode(raw) {
-  return raw.replace(/(\|)+/g, '|').replace(/(_)+/g, '_');
+// Convert raw barcode to readable format with dots
+function prettifyBarcode(raw) {
+  return raw.split('').join('.'); // adds dots between every character
 }
 
-// Check scanned barcode against codes
-function checkBarcode(barcodeRaw) {
-  const barcodeData = `<${normalizeBarcode(barcodeRaw)}>`; // wrap with <>
-  let found = null;
-
-  if (codes[barcodeData]) {
-    found = codes[barcodeData];
-    // Play scan sound on successful detection
-    scanSound.currentTime = 0;
-    scanSound.play().catch(err => console.warn("Sound play failed:", err));
-  }
-
-  return { barcodeData, found };
-}
-
-// Scanning function (scanner logic untouched)
+// Keep the scanner exactly the same as old system
 function scanBarcode() {
   if (!video.videoWidth || !video.videoHeight) return;
 
@@ -54,8 +39,8 @@ function scanBarcode() {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  const lineY = Math.floor(canvas.height / 2); // middle line
-  const sliceWidth = Math.floor(canvas.width / 5); // 5 symbols
+  const lineY = Math.floor(canvas.height / 2);
+  const sliceWidth = Math.floor(canvas.width / 5);
   let barcodeRaw = '';
 
   for (let s = 0; s < 5; s++) {
@@ -71,16 +56,20 @@ function scanBarcode() {
     barcodeRaw += blackPixels > (sliceWidth / 2) ? '|' : '_';
   }
 
-  // Communication with codes
-  const { barcodeData, found } = checkBarcode(barcodeRaw);
+  const barcodeData = `<${barcodeRaw}>`;
+  const pretty = `<${prettifyBarcode(barcodeRaw)}>`; // add dots for clarity
 
-  // Display detected barcode
-  barcodeInfo.textContent = `Detected: ${barcodeData}`;
+  // Display info
+  barcodeInfo.textContent = `Detected: ${pretty}`;
 
-  // Keep your detected highlight exactly as before
-  if (found) {
+  if (codes[barcodeData]) {
+    // play scan sound
+    scanSound.currentTime = 0;
+    scanSound.play().catch(err => console.warn("Sound play failed:", err));
+
     scanWindow.classList.add('detected');
-    barcodeInfo.textContent += `\nShelf: ${found.shelf}\nItems: ${found.items.join(', ')}`;
+    const info = codes[barcodeData];
+    barcodeInfo.textContent += `\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
   } else {
     scanWindow.classList.remove('detected');
   }
