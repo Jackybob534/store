@@ -2,10 +2,10 @@ const video = document.getElementById('video');
 const barcodeInfo = document.getElementById('barcode-info');
 const scanWindow = document.getElementById('scan-window');
 
-// Known barcodes
+// Known barcodes (with dots for clarity)
 let codes = {
   "<_.|._.|._>": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
-  "<_|_|_||>": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
+  "<_|.|_|._||>": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
 };
 
 // Scan success sound
@@ -34,14 +34,14 @@ function prettifyBarcode(raw) {
   return raw.split('').join('.'); // add dots between each character
 }
 
-// Normalize repeated bars/underscores
+// Normalize barcode for matching: add dots between repeated chars
 function normalizeBarcode(raw) {
-  return raw.replace(/(\|)+/g, '|').replace(/(_)+/g, '_');
+  return raw.split('').join('.'); // ensures matching with dotted keys
 }
 
 // Check barcode against known codes
 function checkBarcode(barcodeRaw) {
-  const barcodeData = `<${normalizeBarcode(barcodeRaw)}>`;
+  const barcodeData = `<${normalizeBarcode(barcodeRaw)}>`; // wrap in <>
   let found = null;
 
   if (codes[barcodeData]) {
@@ -64,8 +64,8 @@ function scanBarcode() {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  const lineHeight = 5; // small vertical band
-  const lineY = Math.floor(canvas.height / 2) - Math.floor(lineHeight/2);
+  const lineHeight = 5; 
+  const lineY = Math.floor(canvas.height / 2) - Math.floor(lineHeight / 2);
   const sliceWidth = Math.floor(canvas.width / 5); // exactly 5 symbols
   let barcodeRaw = '';
 
@@ -84,11 +84,11 @@ function scanBarcode() {
     barcodeRaw += blackPixels > (sliceWidth * lineHeight / 2) ? '|' : '_';
   }
 
-  // Communication with codes
+  // Communication
   const { barcodeData, found } = checkBarcode(barcodeRaw);
 
-  // Show barcode with dots
-  barcodeInfo.textContent = `Detected: <${prettifyBarcode(barcodeRaw)}>`;
+  // Display barcode with dots
+  barcodeInfo.textContent = `Detected: ${barcodeData}`;
 
   // Highlight detected if known
   if (found) {
