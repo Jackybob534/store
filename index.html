@@ -2,16 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Barcode Scanner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text Barcode Scanner</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<h1>Scan Barcode Text</h1>
+
 <div id="camera-container">
-  <video id="video" autoplay playsinline></video>
-  <div id="scan-window"></div>
+  <video id="video" autoplay playsinline muted></video>
+  <div id="scan-window">Point at barcode text</div>
 </div>
-<pre id="barcode-info"></pre>
+
+<button id="scan-button">Scan Now</button>
+
+<div id="barcode-info"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
