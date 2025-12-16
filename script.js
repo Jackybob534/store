@@ -2,7 +2,7 @@ const video = document.getElementById('video');
 const barcodeInfo = document.getElementById('barcode-info');
 const scanWindow = document.getElementById('scan-window');
 
-// Known codes
+// Known barcodes
 let codes = {
   "<_|__|>": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
   "<_|_|_||>": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
@@ -24,6 +24,27 @@ startCamera();
 // Normalize repeated bars/underscores
 function normalizeBarcode(raw) {
   return raw.replace(/(\|)+/g, '|').replace(/(_)+/g, '_');
+}
+
+// Check barcode against known codes
+function checkBarcode(barcodeRaw) {
+  const barcodeData = `<${normalizeBarcode(barcodeRaw)}>`;
+  let found = null;
+
+  // Exact match
+  if (codes[barcodeData]) {
+    found = codes[barcodeData];
+  } else {
+    // Optional fallback: includes match
+    for (let key in codes) {
+      if (barcodeData.includes(key)) {
+        found = codes[key];
+        break;
+      }
+    }
+  }
+
+  return { barcodeData, found };
 }
 
 // Scanning function
@@ -53,15 +74,13 @@ function scanBarcode() {
     barcodeRaw += blackPixels > (sliceWidth / 2) ? '|' : '_';
   }
 
-  // Add start/end markers and normalize
-  const barcodeData = `<${normalizeBarcode(barcodeRaw)}>`;
+  // Use communication layer
+  const { barcodeData, found } = checkBarcode(barcodeRaw);
   barcodeInfo.textContent = `Detected: ${barcodeData}`;
 
-  // Success detection
-  if (codes[barcodeData]) {
+  if (found) {
     scanWindow.classList.add('detected');
-    const info = codes[barcodeData];
-    barcodeInfo.textContent += `\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
+    barcodeInfo.textContent += `\nShelf: ${found.shelf}\nItems: ${found.items.join(', ')}`;
   } else {
     scanWindow.classList.remove('detected');
   }
