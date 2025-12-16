@@ -4,8 +4,10 @@ const scanButton = document.getElementById('scan-button');
 const scanWindow = document.getElementById('scan-window');
 
 let codes = {
-  "__|_||": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
-  "_|_|_|": { shelf: "Weapons Rack", items: ["Sword", "Bow"] }
+  "_._.|._.||.|": { shelf: "Health Potions", items: ["Potion", "Elixir"] },
+  "_._.|._.|._.|": { shelf: "Weapons Rack", items: ["Sword", "Bow"] },
+  "_._.|.|._.||.": { shelf: "Magic Items", items: ["Wand", "Spellbook"] },
+  "_|_|_._||.|": { shelf: "Armor Rack", items: ["Shield", "Helmet"] }
 };
 
 // Start camera
@@ -22,40 +24,63 @@ async function startCamera() {
 
 startCamera();
 
-// Scan function using OCR
-async function scanText() {
+// Scan function for horizontal barcode
+function scanBarcode() {
   const canvas = document.createElement('canvas');
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  scanWindow.textContent = "Scanning...";
+  const y = Math.floor(canvas.height / 2); // horizontal line in middle
+  const lineHeight = 5; // thickness of the line to average
+  const sliceWidth = 1; // read every pixel horizontally
 
-  const { data: { text } } = await Tesseract.recognize(canvas, 'eng', {
-    logger: m => console.log(m)
-  });
+  let barcodeRaw = '';
 
-  const detectedText = text.replace(/\s+/g, ''); // remove spaces/newlines
+  for (let x = 0; x < canvas.width; x += sliceWidth) {
+    let blackPixels = 0;
 
-  if (!detectedText) {
-    barcodeInfo.textContent = "No text detected";
-    scanWindow.textContent = "No text detected";
-    return;
+    for (let dy = 0; dy < lineHeight; dy++) {
+      const pixel = ctx.getImageData(x, y + dy, 1, 1).data;
+      const brightness = (pixel[0] + pixel[1] + pixel[2]) / 3;
+      if (brightness < 128) blackPixels++;
+    }
+
+    barcodeRaw += blackPixels > lineHeight / 2 ? '|' : '_';
   }
 
-  // Check if detected text matches codes
-  const info = codes[detectedText];
-  if (info) {
-    barcodeInfo.textContent = `Scanned barcode: ${detectedText}\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
-    scanWindow.textContent = detectedText;
-    scanWindow.classList.add('detected');
+  // Add dot between every character
+  const rawWithDots = barcodeRaw.split('').join('.');
+
+  // Only detect if both start and end markers exist
+  const startMarker = '<';
+  const endMarker = '>';
+  const startIndex = rawWithDots.indexOf(startMarker);
+  const endIndex = rawWithDots.indexOf(endMarker, startIndex + 1);
+
+  if (startIndex !== -1 && endIndex !== -1) {
+    const barcodeData = rawWithDots.slice(startIndex + 1, endIndex);
+
+    // Display result
+    barcodeInfo.textContent = `Scanned barcode: ${barcodeData}`;
+
+    if (codes[barcodeData]) {
+      scanWindow.classList.add('detected');
+      const info = codes[barcodeData];
+      barcodeInfo.textContent += `\nShelf: ${info.shelf}\nItems: ${info.items.join(', ')}`;
+    } else {
+      scanWindow.classList.remove('detected');
+      barcodeInfo.textContent += `\nShelf: Unknown`;
+    }
   } else {
-    barcodeInfo.textContent = `Detected text: ${detectedText}\nShelf: Unknown`;
-    scanWindow.textContent = detectedText;
     scanWindow.classList.remove('detected');
+    barcodeInfo.textContent = 'No valid barcode detected';
   }
 }
 
-// Manual scan button
-scanButton.addEventListener('click', scanText);
+// Manual scan
+scanButton.addEventListener('click', scanBarcode);
+
+// Automatic scan every 500ms
+setInterval(scanBarcode, 500);
