@@ -1,38 +1,58 @@
 html, body {
   margin: 0;
   padding: 0;
-  overflow: hidden;
   width: 100%;
   height: 100%;
-  background: black;
+  background: #111;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  overflow: hidden;
+}
+
+#camera-container {
+  position: relative;
+  width: 90vw;
+  max-width: 500px;
+  aspect-ratio: 1 / 1; /* make camera view square */
+  overflow: hidden;
+  border: 3px solid skyblue;
+  border-radius: 15px;
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
 }
 
 #video {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* make video fill the screen */
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror for front-facing feel */
 }
 
 #scan-window {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 200px;   /* adjust box width */
-  height: 50px;   /* adjust box height */
+  width: 70%;
+  height: 25%;
   transform: translate(-50%, -50%);
-  border: 2px solid skyblue;
-  pointer-events: none;
+  border: 3px dashed #00ffff;
+  border-radius: 10px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 5px #00ffff; }
+  50% { box-shadow: 0 0 20px #00ffff; }
+  100% { box-shadow: 0 0 5px #00ffff; }
 }
 
 #barcode-info {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: white;
+  margin-top: 20px;
+  color: #0ff;
   font-size: 1.2em;
   text-align: center;
+  min-height: 3em;
+  transition: all 0.3s ease;
 }
