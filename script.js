@@ -22,7 +22,7 @@ function normalizeBarcode(raw) {
   return raw.replace(/(\|)+/g, '|').replace(/(_)+/g, '_');
 }
 
-// Scan function — prints anything it sees and updates scan window
+// Scan function — prints everything it sees
 function scanBarcode() {
   const canvas = document.createElement('canvas');
   canvas.width = video.videoWidth;
@@ -46,30 +46,12 @@ function scanBarcode() {
     barcodeRaw += blackPixels > scanHeight / 2 ? '|' : '_';
   }
 
-  // Extract between start/end markers if present
-  const startMarker = '|>';
-  const stopMarker = '<|';
-  const startIndex = barcodeRaw.indexOf(startMarker);
-  const stopIndex = barcodeRaw.indexOf(stopMarker, startIndex + startMarker.length);
+  const barcodeData = normalizeBarcode(barcodeRaw);
 
-  let barcodeData;
-  if (startIndex !== -1 && stopIndex !== -1) {
-    barcodeData = barcodeRaw.slice(startIndex + startMarker.length, stopIndex);
-    barcodeData = normalizeBarcode(barcodeData);
-  } else {
-    barcodeData = normalizeBarcode(barcodeRaw);
-  }
-
-  // Display results in text and update scan window
-  if (barcodeData && barcodeData.replace(/[_|]/g, '').length > 0) {
-    barcodeInfo.textContent = `Scanned barcode: ${barcodeData}`;
-    scanWindow.textContent = `Detected: ${barcodeData}`;
-    scanWindow.classList.add('detected');
-  } else {
-    barcodeInfo.textContent = `No barcode detected`;
-    scanWindow.textContent = `No barcode detected`;
-    scanWindow.classList.remove('detected');
-  }
+  // Print everything detected
+  barcodeInfo.textContent = `Detected text: ${barcodeData}`;
+  scanWindow.textContent = `Detected: ${barcodeData}`;
+  scanWindow.classList.add('detected');
 }
 
 // Connect button
