@@ -26,7 +26,7 @@ function scanBarcode() {
   const canvas = document.createElement('canvas');
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true }); // optimization
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   const startY = canvas.height * 0.4;
@@ -59,8 +59,14 @@ function scanBarcode() {
     barcodeData = normalizeBarcode(barcodeRaw); // no markers, just normalize everything
   }
 
-  // Show whatever it reads
-  barcodeInfo.textContent = `Scanned barcode: ${barcodeData}`;
+  // Show results
+  if (barcodeData && barcodeData.replace(/[_|]/g, '').length > 0) {
+    // Non-empty barcode
+    barcodeInfo.textContent = `Scanned barcode: ${barcodeData}`;
+  } else {
+    // Nothing detected
+    barcodeInfo.textContent = `No barcode detected`;
+  }
 }
 
 // Connect button
